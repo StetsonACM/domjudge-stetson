@@ -1,0 +1,32 @@
+---
+
+- name: Download Mono repository GPG key
+  command: wget -q -O /root/xamarin.gpg http://download.mono-project.com/repo/xamarin.gpg creates=/root/xamarin.gpg
+
+- name: Add Mono repository GPG key
+  command: apt-key add /root/xamarin.gpg
+
+- name: Add Mono repository to apt sources
+  template: src=templates/domserver/apt-sources-mono-xamarin.list dest=/etc/apt/sources.list.d/mono-xamarin.list
+
+- name: Install required packages
+  apt: pkg={{item}} state=installed update_cache=yes
+  with_items:
+    - libboost-all-dev
+    - libgmp3-dev
+    - gcc
+    - g++
+    - openjdk-7-jre-headless
+    - openjdk-7-jdk
+    - mono-complete
+
+- name: Configure DOMjudge
+  command: chdir={{domjudge_folder}}/domjudge-{{domjudge_version}} ./configure --prefix={{domjudge_folder}}
+  sudo_user: domjudge
+
+- name: Build judgehost
+  command: chdir={{domjudge_folder}}/domjudge-{{domjudge_version}} make judgehost
+  sudo_user: domjudge
+
+- name: Install judgehost
+  command: chdir={{domjudge_folder}}/domjudge-{{domjudge_version}} make install-judgehost

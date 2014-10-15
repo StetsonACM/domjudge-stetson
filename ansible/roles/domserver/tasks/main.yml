@@ -1,0 +1,81 @@
+---
+
+- name: Install required DOMServer packages
+  apt: pkg={{item}} update_cache=yes state=installed
+  with_items:
+    - mysql-server
+    - apache2
+    - php5
+    - php5-cli
+    - libapache2-mod-php5
+    - php5-mysql
+    - php5-json
+    - linuxdoc-tools
+    - linuxdoc-tools-text
+    - groff
+    - texlive-latex-recommended
+    - texlive-latex-extra
+    - texlive-fonts-recommended
+    - texlive-lang-dutch
+
+- name: Start MySQL
+  service: name=mysql state=started
+
+- name: Set up MySQL root user
+  mysql_user: name=root password={{mysql_root_password}} host={{item}} priv=*.*:ALL,GRANT state=present
+  with_items:
+    - "{{ansible_hostname}}"
+    - 127.0.0.1
+    - ::1
+    - localhost
+
+- name: Install .my.cnf for MySQL root password
+  template: src=templates/root/my.cnf dest=/root/.my.cnf owner=root mode=0600
+
+- name: Create domjudge DB
+  mysql_db: name=domjudge state=present
+
+- name: Set up domjudge MySQL user
+  mysql_user: name=domjudge password={{mysql_domjudge_password}} host={{item}} priv=domjudge.*:ALL state=present
+  with_items:
+    - "{{ansible_hostname}}"
+    - 127.0.0.1
+    - ::1
+    - localhost
+
+- name: Restart MySQL
+  service: name=mysql state=restarted
+
+- name: Configure DOMjudge
+  command: chdir={{domjudge_folder}}/domjudge-{{domjudge_version}} ./configure --prefix={{domjudge_folder}}
+  sudo_user: domjudge
+
+- name: Build domserver
+  command: chdir={{domjudge_folder}}/domjudge-{{domjudge_version}} make domserver
+  sudo_user: domjudge
+
+- name: Install domserver
+  command: chdir={{domjudge_folder}}/domjudge-{{domjudge_version}} make install-domserver
+
+- name: Install dbpasswords.secret file
+  template: src=templates/domserver/dbpasswords.secret dest={{domjudge_folder}}/domserver/etc/dbpasswords.secret owner=domjudge group=www-data mode=0640
+
+- name: Uninstall domserver database tables
+  command: chdir={{domjudge_folder}}/domserver/bin ./dj-setup-database uninstall
+
+- name: Set up domserver database tables
+  command: chdir={{domjudge_folder}}/domserver/bin ./dj-setup-database bare-install
+
+- name: Install Apache config
+  template: src=templates/domserver/apache2.conf dest=/etc/apache2/sites-available/domjudge.conf
+
+- name: Delete default Apache config symlink
+  file: path=/etc/apache2/sites-enabled/000-default.conf state=absent
+
+- name: Link domjudge Apache config
+  file: path=/etc/apache2/sites-enabled/domjudge.conf src=/etc/apache2/sites-available/domjudge.conf state=link
+
+- name: Restart Apache
+  service: name=apache2 state=restarted
+
+

@@ -1,0 +1,40 @@
+---
+
+- name: Install required packages
+  apt: pkg={{item}} state=installed update_cache=yes
+  with_items:
+    - git
+    - wget
+    - libcurl4-gnutls-dev
+    - libjsoncpp-dev
+    - libmagic-dev
+    - make
+    - zip
+    - unzip
+    - bsdmainutils
+    - ntp
+    - make
+    - sudo
+    - debootstrap
+    - python-mysqldb
+    - php5-cli
+    - php5-curl
+    - php5-json
+    - procps
+
+- name: Create domjudge user
+  user: name=domjudge password={{domjudge_password}} shell=/bin/bash state=present
+
+- name: Make DOMjudge folder
+  command: mkdir -p {{domjudge_folder}}
+
+- name: Change permissions of DOMjudge folder
+  file: path={{domjudge_folder}} owner=domjudge group=domjudge mode=0755
+
+- name: Download DOMjudge
+  command: wget -q -O {{domjudge_folder}}/domjudge-{{domjudge_version}}.tar.gz http://www.domjudge.org/releases/domjudge-{{domjudge_version}}.tar.gz creates={{domjudge_folder}}/domjudge-{{domjudge_version}}.tar.gz
+  sudo_user: domjudge
+
+- name: Extract DOMjudge
+  command: tar -xzf {{domjudge_folder}}/domjudge-{{domjudge_version}}.tar.gz -C {{domjudge_folder}} creates={{domjudge_folder}}/domjudge-{{domjudge_version}}
+  sudo_user: domjudge
