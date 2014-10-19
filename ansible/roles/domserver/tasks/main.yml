@@ -17,6 +17,9 @@
     - texlive-latex-extra
     - texlive-fonts-recommended
     - texlive-lang-dutch
+    - g++
+    - gcc
+    - libboost-all-dev
 
 - name: Start MySQL
   service: name=mysql state=started

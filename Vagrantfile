@@ -50,7 +50,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # vb.gui = true
   
     # Use VBoxManage to customize the VM. For example to change memory:
-    vb.customize ["modifyvm", :id, "--memory", "2096"]
+    vb.customize ["modifyvm", :id, "--memory", "1500"]
   end
 
   #
@@ -98,7 +98,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   #   chef.json = { mysql_password: "foo" }
   # end
 
-  teamids = (1..3)
+  # The hostmanager plugin gives all hosts a record of all others in /etc/hosts
+  config.hostmanager.enabled = true
+  config.hostmanager.manage_host = true
+
+  teamids = (1..1)
 
   teamids.each do |teamid|
     config.vm.define "judgehost#{teamid}" do |machine|

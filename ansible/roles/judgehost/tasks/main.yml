@@ -7,7 +7,7 @@
   command: apt-key add /root/xamarin.gpg
 
 - name: Add Mono repository to apt sources
-  template: src=templates/domserver/apt-sources-mono-xamarin.list dest=/etc/apt/sources.list.d/mono-xamarin.list
+  template: src=templates/judgehost/apt-sources-mono-xamarin.list dest=/etc/apt/sources.list.d/mono-xamarin.list
 
 - name: Install required packages
   apt: pkg={{item}} state=installed update_cache=yes
@@ -20,6 +20,12 @@
     - openjdk-7-jdk
     - mono-complete
 
+- name: Creating domjudge-run user
+  user: name=domjudge-run group=nogroup shell=/bin/false home=/nonexistent
+
+- name: Copying sudoers file for judgedaemon
+  command: cp /opt/domjudge/judgehost/etc/sudoers-domjudge /etc/sudoers.d
+
 - name: Configure DOMjudge
   command: chdir={{domjudge_folder}}/domjudge-{{domjudge_version}} ./configure --prefix={{domjudge_folder}}
   sudo_user: domjudge
@@ -30,3 +36,10 @@
 
 - name: Install judgehost
   command: chdir={{domjudge_folder}}/domjudge-{{domjudge_version}} make install-judgehost
+
+- name: Copy patch for judgedaemon code to judge only submissions from matching team (one judgehost per team)
+  template: src=templates/judgehost/judgedaemon.main.php.patch dest=/opt/domjudge/judgehost/lib/judge/judgedaemon.main.php.patch
+
+- name: Apply patch for judgedaemon code to judge only submissions from matching team (one judgehost per team)
+  command: chdir=/opt/domjudge/judgehost/lib/judge patch -p0 judgedaemon.main.php judgedaemon.main.php.patch
+

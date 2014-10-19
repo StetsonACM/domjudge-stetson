@@ -1,0 +1,19 @@
+--- judgedaemon.main.php.orig	2014-10-19 09:12:25.000000000 -0400
++++ judgedaemon.main.php	2014-10-19 09:12:12.000000000 -0400
+@@ -319,6 +319,16 @@
+ 		continue;
+ 	}
+ 
++    // if teamid (##) does not match our hostname (judgehost##), forget it
++    if ( $myhost != "judgehost".$row[teamid] ) {
++        if ( ! $waiting ) {
++            logmsg(LOG_INFO, "Got submission (t$row[teamid]/p$row[probid]/$row[langid]), but team id does not match my hostname ($myhost).");
++            $waiting = TRUE;
++        }
++        sleep($waittime);
++        continue;
++    }
++
+ 	// we have gotten a submission for judging
+ 	$waiting = FALSE;
+ 
