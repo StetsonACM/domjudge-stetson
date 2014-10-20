@@ -10,7 +10,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # please see the online documentation at vagrantup.com.
 
   # Every Vagrant virtual environment requires a box to build off of.
-  config.vm.box = "ubuntu/trusty64"
+  config.vm.box = "domjudge-stetson-2/trusty64"
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
@@ -45,12 +45,24 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # backing providers for Vagrant. These expose provider-specific options.
   # Example for VirtualBox:
   #
-  config.vm.provider "virtualbox" do |vb|
+  #config.vm.provider "virtualbox" do |vb|
     # # Don't boot with headless mode
     # vb.gui = true
   
     # Use VBoxManage to customize the VM. For example to change memory:
-    vb.customize ["modifyvm", :id, "--memory", "1500"]
+  #  vb.customize ["modifyvm", :id, "--memory", "1500"]
+  #  vb.customize ["modifyvm", :id, "--hwvirtex", "off"]
+  #end
+  
+  config.vm.provider :libvirt do |libvirt|
+    libvirt.driver = "kvm"
+    #libvirt.host = "localhost"
+    #libvirt.connect_via_ssh = true
+    #libvirt.username = "jeckroth"
+    libvirt.uri = "qemu:///system"
+    libvirt.storage_pool_name = "default"
+    libvirt.memory = 1024
+    libvirt.graphics_type = "none"
   end
 
   #
@@ -100,15 +112,15 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   # The hostmanager plugin gives all hosts a record of all others in /etc/hosts
   config.hostmanager.enabled = true
-  config.hostmanager.manage_host = true
+  #config.hostmanager.manage_host = true
 
-  teamids = (1..1)
+  teamids = (1..10)
 
   teamids.each do |teamid|
     config.vm.define "judgehost#{teamid}" do |machine|
       machine.vm.hostname = "judgehost#{teamid}"
       machine.vm.network "private_network", ip: "192.168.77.2#{teamid}"
-    end
+      end
   end
 
   config.vm.define "domserver" do |machine|
