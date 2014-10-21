@@ -69,5 +69,5 @@ Cmnd_Alias VAGRANT_HOSTMANAGER_UPDATE = /bin/cp /home/user/.vagrant.d/tmp/hosts.
 ## Setup
 
 - `export VAGRANT_DEFAULT_PROVIDER=libvirt`
-- `vagrant up`
+- `vagrant up --no-parallel`
 

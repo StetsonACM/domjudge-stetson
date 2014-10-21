@@ -21,6 +21,9 @@
     - gcc
     - libboost-all-dev
 
+- name: Copy MySQL my.cnf
+  template: src=templates/domserver/my.cnf dest=/etc/mysql/my.cnf owner=root mode=0644
+
 - name: Start MySQL
   service: name=mysql state=started
 
@@ -35,8 +38,14 @@
 - name: Install .my.cnf for MySQL root password
   template: src=templates/root/my.cnf dest=/root/.my.cnf owner=root mode=0600
 
+- name: Copy domjudge.sql data import
+  copy: src=domjudge.sql dest={{domjudge_folder}}/domjudge.sql
+
 - name: Create domjudge DB
-  mysql_db: name=domjudge state=present
+  mysql_db: name=domjudge state=present target={{domjudge_folder}}/domjudge.sql
+
+- name: Delete domjudge.sql
+  command: rm -f {{domjudge_folder}}/domjudge.sql
 
 - name: Set up domjudge MySQL user
   mysql_user: name=domjudge password={{mysql_domjudge_password}} host={{item}} priv=domjudge.*:ALL state=present
@@ -63,13 +72,13 @@
 - name: Install dbpasswords.secret file
   template: src=templates/domserver/dbpasswords.secret dest={{domjudge_folder}}/domserver/etc/dbpasswords.secret owner=domjudge group=www-data mode=0640
 
-- name: Uninstall domserver database tables
-  command: chdir={{domjudge_folder}}/domserver/bin ./dj-setup-database uninstall
+#- name: Uninstall domserver database tables
+#  command: chdir={{domjudge_folder}}/domserver/bin ./dj-setup-database uninstall
+#
+#- name: Set up domserver database tables
+#  command: chdir={{domjudge_folder}}/domserver/bin ./dj-setup-database bare-install
 
-- name: Set up domserver database tables
-  command: chdir={{domjudge_folder}}/domserver/bin ./dj-setup-database bare-install
-
-- name: Install Apache config
+- name: Copy Apache config
   template: src=templates/domserver/apache2.conf dest=/etc/apache2/sites-available/domjudge.conf
 
 - name: Delete default Apache config symlink
@@ -77,6 +86,9 @@
 
 - name: Link domjudge Apache config
   file: path=/etc/apache2/sites-enabled/domjudge.conf src=/etc/apache2/sites-available/domjudge.conf state=link
+
+- name: Copy PHP5 config (php.ini)
+  template: src=templates/domserver/php.ini dest=/etc/php5/apache2/php.ini
 
 - name: Restart Apache
   service: name=apache2 state=restarted

@@ -27,9 +27,6 @@
   command: chdir={{domjudge_folder}}/domjudge-{{domjudge_version}} ./configure --prefix={{domjudge_folder}}
   sudo_user: domjudge
 
-- name: Copying sudoers file for judgedaemon
-  command: cp /opt/domjudge/judgehost/etc/sudoers-domjudge /etc/sudoers.d
-
 - name: Build judgehost
   command: chdir={{domjudge_folder}}/domjudge-{{domjudge_version}} make judgehost
   sudo_user: domjudge
@@ -37,9 +34,27 @@
 - name: Install judgehost
   command: chdir={{domjudge_folder}}/domjudge-{{domjudge_version}} make install-judgehost
 
+- name: Copying sudoers file for judgedaemon
+  command: cp /opt/domjudge/judgehost/etc/sudoers-domjudge /etc/sudoers.d
+
 - name: Copy patch for judgedaemon code to judge only submissions from matching team (one judgehost per team)
   template: src=templates/judgehost/judgedaemon.main.php.patch dest=/opt/domjudge/judgehost/lib/judge/judgedaemon.main.php.patch
 
 - name: Apply patch for judgedaemon code to judge only submissions from matching team (one judgehost per team)
   command: chdir=/opt/domjudge/judgehost/lib/judge patch -p0 judgedaemon.main.php judgedaemon.main.php.patch
+
+- name: Copy judgehost config that disables CHROOT
+  template: src=templates/judgehost/judgehost-config.php dest=/opt/domjudge/judgehost/etc/judgehost-config.php
+
+- name: Copy restapi.secret for judgedaemon
+  template: src=templates/judgehost/restapi.secret dest=/opt/domjudge/judgehost/etc/restapi.secret
+
+- name: Copy judgehost Upstart script
+  template: src=templates/judgehost/judgehost.upstart.conf dest=/etc/init/judgehost.conf
+
+- name: Reload Upstart configuration
+  command: initctl reload-configuration
+
+- name: Restart judgehost daemon
+  service: name=judgehost state=restarted
 
