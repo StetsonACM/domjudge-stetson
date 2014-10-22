@@ -61,7 +61,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     #libvirt.username = "jeckroth"
     libvirt.uri = "qemu:///system"
     libvirt.storage_pool_name = "default"
-    libvirt.memory = 1024
+    libvirt.memory = 2048 
   end
 
   #
@@ -113,18 +113,16 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.hostmanager.enabled = true
   #config.hostmanager.manage_host = true
 
-  teamids = (1..10)
+  teamids = (2..5)
 
   teamids.each do |teamid|
     config.vm.define "judgehost#{teamid}" do |machine|
       machine.vm.hostname = "judgehost#{teamid}"
-      #machine.vm.network "private_network", ip: "192.168.77.2#{teamid}"
       end
   end
 
   config.vm.define "domserver" do |machine|
     machine.vm.hostname = "domserver"
-    #machine.vm.network "private_network", ip: "192.168.77.10"
     machine.vm.network "forwarded_port", guest: 80, host: 8080
   end
 

@@ -1,0 +1,18 @@
+--- index.php.orig	2014-10-22 15:46:37.811062958 +0000
++++ index.php	2014-10-22 15:58:05.594501569 +0000
+@@ -137,6 +137,7 @@
+ 	checkargs($args, array('judgehost'));
+ 
+ 	$host = $args['judgehost'];
++	$hostid = intval(substr($host, 9));
+ 	$DB->q('UPDATE judgehost SET polltime = %s WHERE hostname = %s', now(), $host);
+ 
+ 	// If this judgehost is not active, there's nothing to do
+@@ -152,6 +153,7 @@
+ 	                    LEFT JOIN team t ON (s.teamid = t.teamid)
+ 	                    LEFT JOIN problem p USING (probid) LEFT JOIN language l USING (langid)
+ 	                    WHERE judgehost IS NULL AND s.cid = %i
++                            AND t.teamid = '.$hostid.'
+ 			    AND l.allow_judge = 1 AND p.allow_judge = 1 AND valid = 1
+ 	                    ORDER BY judging_last_started ASC, submittime ASC, submitid ASC
+ 	                    LIMIT 1',

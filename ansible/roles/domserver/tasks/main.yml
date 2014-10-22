@@ -66,6 +66,15 @@
 - name: Install dbpasswords.secret file
   template: src=templates/domserver/dbpasswords.secret dest={{domjudge_folder}}/domserver/etc/dbpasswords.secret owner=domjudge group=www-data mode=0640
 
+- name: Copy patch to give judgehosts submissions for their particular team
+  template: src=templates/domserver/index.php.patch dest={{domjudge_folder}}/domserver/www/api/index.php.patch
+
+- name: Apply patch to give judgehosts submissions for their particular team
+  command: chdir={{domjudge_folder}}/domserver/www/api patch -p0 --ignore-whitespace index.php index.php.patch
+
+- name: Remove patch to give judgehosts submissions for their particular team
+  command: rm -f {{domjudge_folder}}/domserver/www/api/index.php.patch
+
 #- name: Uninstall domserver database tables
 #  command: chdir={{domjudge_folder}}/domserver/bin ./dj-setup-database uninstall
 #

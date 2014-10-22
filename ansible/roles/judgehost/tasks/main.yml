@@ -35,19 +35,19 @@
   command: chdir={{domjudge_folder}}/domjudge-{{domjudge_version}} make install-judgehost
 
 - name: Copy sudoers file for judgedaemon
-  command: cp /opt/domjudge/judgehost/etc/sudoers-domjudge /etc/sudoers.d
+  command: cp {{domjudge_folder}}/judgehost/etc/sudoers-domjudge /etc/sudoers.d
 
-- name: Copy patch for judgedaemon code to judge only submissions from matching team (one judgehost per team)
-  template: src=templates/judgehost/judgedaemon.main.php.patch dest=/opt/domjudge/judgehost/lib/judge/judgedaemon.main.php.patch
+- name: Copy patch for judgedaemon code to print hostname in log files
+  template: src=templates/judgehost/lib.error.php.patch dest={{domjudge_folder}}/judgehost/lib/lib.error.php.patch
 
-- name: Apply patch for judgedaemon code to judge only submissions from matching team (one judgehost per team)
-  command: chdir=/opt/domjudge/judgehost/lib/judge patch -p0 judgedaemon.main.php judgedaemon.main.php.patch
+- name: Apply patch for judgedaemon code to print hostname in log files
+  command: chdir={{domjudge_folder}}/judgehost/lib patch -p0 --ignore-whitespace lib.error.php lib.error.php.patch
 
 - name: Copy judgehost config that disables CHROOT
-  template: src=templates/judgehost/judgehost-config.php dest=/opt/domjudge/judgehost/etc/judgehost-config.php
+  template: src=templates/judgehost/judgehost-config.php dest={{domjudge_folder}}/judgehost/etc/judgehost-config.php
 
 - name: Copy restapi.secret for judgedaemon
-  template: src=templates/judgehost/restapi.secret dest=/opt/domjudge/judgehost/etc/restapi.secret
+  template: src=templates/judgehost/restapi.secret dest={{domjudge_folder}}/judgehost/etc/restapi.secret
 
 - name: Copy judgehost Upstart script
   template: src=templates/judgehost/judgehost.upstart.conf dest=/etc/init/judgehost.conf
@@ -57,4 +57,5 @@
 
 - name: Start judgehost daemon
   service: name=judgehost state=started
+
 

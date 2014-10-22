@@ -1,0 +1,4 @@
+54c54
+<       $stamp = "[" . strftime("%b %d %H:%M:%S") . "] " . SCRIPT_ID .
+---
+>       $stamp = gethostname()."\t[" . strftime("%b %d %H:%M:%S") . "] " . SCRIPT_ID .
