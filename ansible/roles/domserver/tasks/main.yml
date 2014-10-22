@@ -38,14 +38,8 @@
 - name: Install .my.cnf for MySQL root password
   template: src=templates/root/my.cnf dest=/root/.my.cnf owner=root mode=0600
 
-- name: Copy domjudge.sql data import
-  copy: src=domjudge.sql dest={{domjudge_folder}}/domjudge.sql
-
 - name: Create domjudge DB
-  mysql_db: name=domjudge state=present target={{domjudge_folder}}/domjudge.sql
-
-- name: Delete domjudge.sql
-  command: rm -f {{domjudge_folder}}/domjudge.sql
+  mysql_db: name=domjudge state=present
 
 - name: Set up domjudge MySQL user
   mysql_user: name=domjudge password={{mysql_domjudge_password}} host={{item}} priv=domjudge.*:ALL state=present
