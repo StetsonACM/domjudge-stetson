@@ -10,6 +10,7 @@ vagrant ssh domserver -- "rm -f /home/vagrant/domjudge.sql"
 ## restart judgedaemons
 for j in `vagrant status | grep -oE '(judgehost[0-9]+)'`
 do
+  vagrant ssh $j -- "sudo /home/vagrant/update-domserver-ip.sh $IP"
   vagrant ssh $j -- "sudo service judgehost restart"
 done
 

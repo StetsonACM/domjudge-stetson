@@ -1,5 +1,29 @@
 ---
 
+- name: Create ~vagrant/.ssh directory
+  file: path=/home/vagrant/.ssh state=directory mode=0700 owner=vagrant
+
+- name: Copy SSH private key
+  copy: src=id_rsa dest=/home/vagrant/.ssh/id_rsa mode=0600 owner=vagrant
+
+- name: Copy SSH public key
+  copy: src=id_rsa.pub dest=/home/vagrant/.ssh/id_rsa.pub mode=0644 owner=vagrant
+
+- name: Copy SSH known_hosts
+  copy: src=known_hosts dest=/home/vagrant/.ssh/known_hosts mode=0644 owner=vagrant
+
+- name: Copy SSH tunnel service
+  copy: src=sshtunnel.upstart.conf dest=/etc/init/sshtunnel.conf
+
+- name: Reload Upstart configuration
+  command: initctl reload-configuration
+
+- name: Start SSH tunnel service
+  service: name=sshtunnel state=started
+
+- name: Install apt-cacher-ng apt configuration
+  copy: src=99apt-cacher-ng dest=/etc/apt/apt.conf.d/99apt-cacher-ng
+
 - name: Install required packages
   apt: pkg={{item}} state=installed update_cache=yes
   with_items:
@@ -22,6 +46,12 @@
     - php5-json
     - procps
 
+- name: Stop puppet service
+  service: name=puppet state=stopped
+
+- name: Stop chef-client service
+  service: name=chef-client state=stopped
+
 - name: Create domjudge user
   user: name=domjudge password={{domjudge_password}} shell=/bin/bash state=present
 
@@ -38,3 +68,4 @@
 - name: Extract DOMjudge
   command: tar -xzf {{domjudge_folder}}/domjudge-{{domjudge_version}}.tar.gz -C {{domjudge_folder}} creates={{domjudge_folder}}/domjudge-{{domjudge_version}}
   sudo_user: domjudge
+

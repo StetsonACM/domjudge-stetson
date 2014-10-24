@@ -1,5 +1,14 @@
 ---
 
+- name: Copy Oracle JDK
+  copy: src=jdk-7u71-linux-x64.tar.gz dest=/home/vagrant/jdk-7u71-linux-x64.tar.gz
+
+- name: Copy Oracle JDK installation script
+  copy: src=install-oracle-jdk.sh dest=/home/vagrant/install-oracle-jdk.sh
+
+- name: Run Oracle JDK installation script
+  command: chdir=/home/vagrant bash install-oracle-jdk.sh
+
 - name: Download Mono repository GPG key
   command: wget -q -O /root/xamarin.gpg http://download.mono-project.com/repo/xamarin.gpg creates=/root/xamarin.gpg
 
@@ -16,8 +25,6 @@
     - libgmp3-dev
     - gcc
     - g++
-    - openjdk-7-jre-headless
-    - openjdk-7-jdk
     - mono-complete
 
 - name: Creating domjudge-run user
@@ -48,6 +55,9 @@
 
 - name: Copy restapi.secret for judgedaemon
   template: src=templates/judgehost/restapi.secret dest={{domjudge_folder}}/judgehost/etc/restapi.secret
+
+- name: Copy update-domserver-ip.sh script
+  template: src=templates/judgehost/update-domserver-ip.sh dest=/home/vagrant/update-domserver-ip.sh mode=0755
 
 - name: Copy judgehost Upstart script
   template: src=templates/judgehost/judgehost.upstart.conf dest=/etc/init/judgehost.conf

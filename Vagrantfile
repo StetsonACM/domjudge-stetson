@@ -61,7 +61,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     #libvirt.username = "jeckroth"
     libvirt.uri = "qemu:///system"
     libvirt.storage_pool_name = "default"
-    libvirt.memory = 2048 
+    libvirt.memory = 4096
   end
 
   #
@@ -110,7 +110,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # end
 
   # The hostmanager plugin gives all hosts a record of all others in /etc/hosts
-  config.hostmanager.enabled = true
+  #config.hostmanager.enabled = true
   #config.hostmanager.manage_host = true
 
   teamids = (2..5)
