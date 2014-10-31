@@ -60,7 +60,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     #libvirt.connect_via_ssh = true
     #libvirt.username = "jeckroth"
     libvirt.uri = "qemu:///system"
-    libvirt.storage_pool_name = "default"
+    libvirt.storage_pool_name = "domjudge"
     libvirt.memory = 4096
   end
 
@@ -113,7 +113,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   #config.hostmanager.enabled = true
   #config.hostmanager.manage_host = true
 
-  teamids = (2..5)
+  teamids = (2..41)
 
   teamids.each do |teamid|
     config.vm.define "judgehost#{teamid}" do |machine|
@@ -123,7 +123,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.define "domserver" do |machine|
     machine.vm.hostname = "domserver"
-    machine.vm.network "forwarded_port", guest: 80, host: 8080
+    machine.vm.network "forwarded_port", guest: 80, host: 8080, gateway_ports: true, host_ip: '*'
   end
 
   config.vm.provision "ansible" do |ansible|
