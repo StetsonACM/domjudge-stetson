@@ -1,0 +1,132 @@
+#!/bin/bash
+#
+# Script for automatic submission of solution source code or
+# sending clarification requests as a team.
+#
+# Syntax: $0 [OPTIONS] <type> <file>
+#
+# <type> must be one of "solution" / "clarification" / "team" / "user"
+# <file> contains the solution source code or the body text for the
+# clarification request, when application (solution / clarification)
+#
+# Additional options:
+#
+# -c <user>:<pass>  username and password to login as team
+# -l <langid>       language ID for code submission
+# -p <probid>       problem ID for code submission or clarification
+#                   request. Defaults to 'general' for clarifications.
+# -n <name>         for team name, user name
+# -a <userpass>     for user password
+# -t <teamid>       for user's team id
+# -u <baseurl>      base URL of the DOMjudge installation, e.g.
+#                   'http://example.com/domjudge/'
+
+# Defaults:
+PROBID='general'
+BASEURL='http://localhost/domjudge/'
+
+# cURL cookie-jar file to store PHP session data.
+COOKIEJAR=`mktemp -t domjudge`
+
+CURLOPTS="-sq -m 30 -b $COOKIEJAR"
+
+error()
+{
+	echo "Error: $@"
+	exit 1
+}
+
+while getopts ':c:l:p:u:n:a:t:' OPT ; do
+	case $OPT in
+		c)
+			LOGIN=${OPTARG%%:*}
+			PASS=${OPTARG#*:}
+			;;
+		l)
+			LANGID=$OPTARG
+			;;
+		p)
+			PROBID=$OPTARG
+			;;
+		u)
+			BASEURL=$OPTARG
+			;;
+        n)
+            NAME=$OPTARG
+            ;;
+        a)
+            USERPASS=$OPTARG
+            ;;
+        t)
+            USERTEAMID=$OPTARG
+            ;;
+		?)
+			error "unknown option '$OPTARG' found."
+			;;
+		:)
+			error "option '$OPTARG' requires an argument."
+			exit 1
+			;;
+		*)
+			error "Unknown error parsing option '$OPT', argument '$OPTARG'."
+			;;
+	esac
+done
+shift $((OPTIND - 1))
+
+CMD=$1
+FILE=$2
+#[ -r "$FILE" ] || error "cannot read file '$FILE'."
+
+case "$CMD" in
+    clar* | sol* )
+        URL="${BASEURL}/team"
+        ;;
+    team | user )
+        URL="${BASEURL}/jury"
+        ;;
+esac
+
+# See if we are logged in already, and try to use credentials otherwise:
+if curl $CURLOPTS "$URL/" | grep '<h1>Not Authenticated</h1>' &>/dev/null ; then
+    [ -n "$LOGIN" ] || error "credentials required for login."
+    curl $CURLOPTS -c $COOKIEJAR -F "cmd=login" -F "login=$LOGIN" \
+        -F "passwd=$PASS" "$URL/" &>/dev/null
+fi
+
+if curl $CURLOPTS "$URL/" | grep '<h1>Not Authenticated</h1>' &>/dev/null ; then
+	error "login not successful."
+fi
+
+case "$CMD" in
+	clar*)
+		curl $CURLOPTS -F "problem=general" -F "bodytext=`cat $FILE`" \
+		    -F "submit=Send" "${URL}/clarification.php"
+		;;
+
+	sol*)
+		curl $CURLOPTS -F "probid=$PROBID" -F "langid=$LANGID" \
+            -F "code[]=@$FILE" -F "submit=submit" "${URL}/upload.php" 
+		;;
+
+    team)
+        curl $CURLOPTS -F "data[0][name]=$NAME" -F "data[0][categoryid]=2" \
+            -F "data[0][affilid]=2" -F "data[0][room]=RoomA" -F "data[0][enabled]=1" \
+            -F "cmd=add" -F "table=team" "${URL}/edit.php"
+        ;;
+    user)
+        curl $CURLOPTS -F "data[0][username]=$NAME" -F "data[0][name]=$NAME" \
+            -F "data[0][email]=$NAME@example.com" -F "data[0][password]=$USERPASS" \
+            -F "data[0][teamid]=$USERTEAMID" -F "data[0][mapping][items][2]=3" -F "data[0][enabled]=1" \
+            -F "data[0][mapping][fk][0]=userid" -F "data[0][mapping][fk][1]=roleid" -F "data[0][mapping][table]=userrole" \
+            -F "cmd=add" -F "table=user" \
+            "${URL}/edit.php"
+        ;;
+
+	*)
+		error "unknown command '$CMD'."
+		;;
+esac
+
+rm -f "$COOKIEJAR"
+exit 0
