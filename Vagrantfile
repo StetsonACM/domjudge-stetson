@@ -10,7 +10,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # please see the online documentation at vagrantup.com.
 
   # Every Vagrant virtual environment requires a box to build off of.
-  config.vm.box = "domjudge-stetson-2/trusty64"
+  config.vm.box = "stetson/libvirt-ubuntu-trusty64"
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
@@ -61,7 +61,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     #libvirt.username = "jeckroth"
     libvirt.uri = "qemu:///system"
     libvirt.storage_pool_name = "domjudge"
-    libvirt.memory = 4096
+    libvirt.memory = 4096 # doesn't have an effect?
   end
 
   #
@@ -113,7 +113,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   #config.hostmanager.enabled = true
   #config.hostmanager.manage_host = true
 
-  teamids = (2..41)
+  teamids = (2..46)
 
   teamids.each do |teamid|
     config.vm.define "judgehost#{teamid}" do |machine|

@@ -2,7 +2,7 @@
 
 - hosts: all
 
-  sudo: yes
+  become: yes
 
   vars:
     domjudge_folder: /opt/domjudge
@@ -16,7 +16,7 @@
 
 - hosts: domserver
 
-  sudo: yes
+  become: yes
 
   vars:
     domjudge_folder: /opt/domjudge
@@ -30,7 +30,7 @@
 
 - hosts: judgehost
 
-  sudo: yes
+  become: yes
 
   vars:
     domjudge_folder: /opt/domjudge

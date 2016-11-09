@@ -1,5 +1,36 @@
 # Requirements
 
+## Libvirt setup
+
+Create a storage pool:
+
+```
+cat > /etc/libvirt/storage/domjudge.xml
+<pool type='dir'>
+  <name>domjudge</name>
+  <uuid>c64f38db-4187-4f8b-3d3a-8251ef4e2246</uuid>
+  <capacity unit='bytes'>1968740425728</capacity>
+  <allocation unit='bytes'>488388210688</allocation>
+  <available unit='bytes'>1480352215040</available>
+  <source>
+  </source>
+  <target>
+    <path>/bigdata/vms/virtimages/domjudge</path>
+    <permissions>
+      <mode>0755</mode>
+      <owner>-1</owner>
+      <group>-1</group>
+    </permissions>
+  </target>
+</pool>
+```
+
+Then,
+
+```
+sudo systemctl restart libvirtd
+```
+
 ## Vagrant plugins
 
 ### Vagrant libvirt

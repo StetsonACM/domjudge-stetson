@@ -45,6 +45,7 @@
     - php5-curl
     - php5-json
     - procps
+    - acl
 
 - name: Stop puppet service
   service: name=puppet state=stopped
@@ -56,16 +57,13 @@
   user: name=domjudge password={{domjudge_password}} shell=/bin/bash state=present
 
 - name: Make DOMjudge folder
-  command: mkdir -p {{domjudge_folder}}
-
-- name: Change permissions of DOMjudge folder
-  file: path={{domjudge_folder}} owner=domjudge group=domjudge mode=0755
+  file: path={{domjudge_folder}} state=directory owner=domjudge group=domjudge mode=0755
 
 - name: Download DOMjudge
-  command: wget -q -O {{domjudge_folder}}/domjudge-{{domjudge_version}}.tar.gz http://www.domjudge.org/releases/domjudge-{{domjudge_version}}.tar.gz creates={{domjudge_folder}}/domjudge-{{domjudge_version}}.tar.gz
-  sudo_user: domjudge
+  get_url: dest={{domjudge_folder}}/domjudge-{{domjudge_version}}.tar.gz url=http://www.domjudge.org/releases/domjudge-{{domjudge_version}}.tar.gz
+  become_user: domjudge
 
 - name: Extract DOMjudge
-  command: tar -xzf {{domjudge_folder}}/domjudge-{{domjudge_version}}.tar.gz -C {{domjudge_folder}} creates={{domjudge_folder}}/domjudge-{{domjudge_version}}
-  sudo_user: domjudge
+  unarchive: src={{domjudge_folder}}/domjudge-{{domjudge_version}}.tar.gz dest={{domjudge_folder}} copy=no
+  become_user: domjudge
 
